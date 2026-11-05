@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_sovos_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_sovos';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class SovosResult {
+  /// Creates a result.
   const SovosResult({
     this.documentId,
     this.product,
@@ -61,8 +62,13 @@ class SovosResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class SovosCallResult<T> {
+  /// Creates a call result.
   const SovosCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final SovosResult? result;
 }
@@ -94,47 +100,47 @@ Future<T> tracedSovos<T>({
   final span = _tracer().startSpan(
     'sovos $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     if (r.result != null) {
       final extras = <Attribute<Object>>[];
       if (r.result!.documentId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'sovos.document.id',
           r.result!.documentId!,
         ));
       }
       if (r.result!.product != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'sovos.product',
           r.result!.product!,
         ));
       }
       if (r.result!.flow != null) {
-        extras.add(OTel.attributeString('sovos.flow', r.result!.flow!));
+        extras.add(OTelAPI.attributeString('sovos.flow', r.result!.flow!));
       }
       if (r.result!.country != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'sovos.country',
           r.result!.country!,
         ));
       }
       if (r.result!.totalTaxMinor != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'sovos.tax.total.minor',
           r.result!.totalTaxMinor!,
         ));
       }
       if (r.result!.currency != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'sovos.currency',
           r.result!.currency!,
         ));
       }
       if (r.result!.clearanceStatus != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'sovos.clearance.status',
           r.result!.clearanceStatus!,
         ));
@@ -146,25 +152,25 @@ Future<T> tracedSovos<T>({
         }
       }
       if (r.result!.governmentResponseCode != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'sovos.government.response_code',
           r.result!.governmentResponseCode!,
         ));
       }
       if (r.result!.lineCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'sovos.line_count',
           r.result!.lineCount!,
         ));
       }
       if (r.result!.requestId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'sovos.request.id',
           r.result!.requestId!,
         ));
       }
       if (r.result!.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           r.result!.statusCode!,
         ));
@@ -175,13 +181,13 @@ Future<T> tracedSovos<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
